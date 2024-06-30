@@ -5,11 +5,12 @@ import ffmpeg
 from datetime import datetime
 from openai import OpenAI
 
-ffmpeg._ffmpeg = "/usr/bin/ffmpeg"
-ffmpeg._ffprobe = "/usr/bin/ffprobe"
+# ffmpeg._ffmpeg = "/usr/bin/ffmpeg"
+# ffmpeg._ffprobe = "/usr/bin/ffprobe"
 
 # 設置頁面標題
 st.title('逐字稿生成工具')
+st.markdown("""本工具使用 OpenAI 的 Audio API 來轉錄逐字稿，目前不支援一小時以上的影音檔。""")
 
 api_key = st.text_input("OpenAI API keys", "")
 client = OpenAI(api_key=api_key)
@@ -27,6 +28,21 @@ uploaded_file = st.file_uploader(
     "文件上傳器", 
     type=["mp3","mp4","mpeg","mpga","m4a","wav","webm"]
 )
+
+def check_file_size(file_path, max_size_mb=24):
+    # 將 MB 轉換為 Bytes
+    max_size_bytes = max_size_mb * 1024 * 1024
+    
+    # 獲取檔案大小
+    file_size = os.path.getsize(file_path)
+    
+    # 檢查檔案大小是否超過限制
+    if file_size > max_size_bytes:
+        print(f"檔案 {file_path} 大小為 {file_size / (1024 * 1024):.2f} MB，超過 {max_size_mb} MB 的限制。")
+        return False
+    else:
+        print(f"檔案 {file_path} 大小為 {file_size / (1024 * 1024):.2f} MB，在限制範圍內。")
+        return True
 
 if uploaded_file is not None:
     # 讀取檔名
@@ -61,45 +77,49 @@ if uploaded_file is not None:
     # st.write(f'2 / 4 - 轉換並壓縮檔案：{output_file}')
     ffmpeg.input(input_file).output(output_file, q='9', ac='1').overwrite_output().run()
 
-    # 處理檔案 2
-    # 1. 轉換成 srt 格式的逐字稿
-    input_file = open(output_file, "rb")
-    output_file = f'{output_dir}/{file_name}.srt'
-    st.write(f'3 / 4 - 轉換成 srt 格式的逐字稿')
-    # st.write(f'3 / 4 - 轉換成 srt 格式的逐字稿：{output_file}')
-    prompt = user_prompt1
-    transcription = client.audio.transcriptions.create(
-        model = "whisper-1", 
-        file = input_file,
-        language = "zh",
-        response_format="srt",
-        prompt = prompt
-    )
-    file = open(output_file, 'w')
-    file.write(transcription)
-    with st.expander("逐字稿"):
-        st.code(transcription, language='wiki')
+    if check_file_size(output_file):
 
-    # 處理檔案 3
-    # 1. 將 srt 轉換成 txt
-    input_file = output_file
-    output_file = f"{output_dir}/{file_name}.txt"
-    st.write(f'4 / 4 - 將 srt 轉換成 txt')
-    # st.write(f'4 / 4 - 將 srt 轉換成 txt：{output_file}')
-    transcription_txt = ""
-    for idx, t in enumerate(transcription.split("\n")):
-        if idx % 4 == 2:
-            transcription_txt += t + " "
-    prompt = user_prompt2 + transcription_txt
-    completion = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[{"role": "user", "content": prompt}]
-    )
-    transcription_txt = completion.choices[0].message.content
-    file = open(output_file, 'w')
-    file.write(transcription_txt)
-    with st.expander("整理後的逐字稿"):
-        st.code(transcription_txt, language='wiki')
+        # 處理檔案 2
+        # 1. 轉換成 srt 格式的逐字稿
+        input_file = open(output_file, "rb")
+        output_file = f'{output_dir}/{file_name}.srt'
+        st.write(f'3 / 4 - 轉換成 srt 格式的逐字稿')
+        # st.write(f'3 / 4 - 轉換成 srt 格式的逐字稿：{output_file}')
+        prompt = user_prompt1
+        transcription = client.audio.transcriptions.create(
+            model = "whisper-1", 
+            file = input_file,
+            language = "zh",
+            response_format="srt",
+            prompt = prompt
+        )
+        file = open(output_file, 'w')
+        file.write(transcription)
+        with st.expander("逐字稿"):
+            st.code(transcription, language='wiki')
+
+        # 處理檔案 3
+        # 1. 將 srt 轉換成 txt
+        input_file = output_file
+        output_file = f"{output_dir}/{file_name}.txt"
+        st.write(f'4 / 4 - 將 srt 轉換成 txt')
+        # st.write(f'4 / 4 - 將 srt 轉換成 txt：{output_file}')
+        transcription_txt = ""
+        for idx, t in enumerate(transcription.split("\n")):
+            if idx % 4 == 2:
+                transcription_txt += t + " "
+        prompt = user_prompt2 + transcription_txt
+        completion = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        transcription_txt = completion.choices[0].message.content
+        file = open(output_file, 'w')
+        file.write(transcription_txt)
+        with st.expander("整理後的逐字稿"):
+            st.code(transcription_txt, language='wiki')
+    else:
+        st.write(f'超過檔案大小')
 
     shutil.rmtree("./input")
     shutil.rmtree("./output")

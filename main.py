@@ -6,6 +6,9 @@ from datetime import datetime
 import pysrt
 from openai import OpenAI
 
+ffmpeg._ffmpeg = "/usr/bin/ffmpeg"
+ffmpeg._ffprobe = "/usr/bin/ffprobe"
+
 # 設置頁面標題
 st.title('逐字稿生成工具')
 

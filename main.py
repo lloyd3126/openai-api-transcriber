@@ -3,7 +3,6 @@ import os
 import shutil
 import ffmpeg
 from datetime import datetime
-import pysrt
 from openai import OpenAI
 
 ffmpeg._ffmpeg = "/usr/bin/ffmpeg"
@@ -32,8 +31,9 @@ uploaded_file = st.file_uploader(
 if uploaded_file is not None:
     # 讀取檔名
     full_file_name = uploaded_file.name
-    file_extension = os.path.splitext(uploaded_file.name)[1]
-    file_name = os.path.splitext(uploaded_file.name)[0]
+    # full_file_name = full_file_name.replace(' ', '_')
+    file_extension = os.path.splitext(full_file_name)[1]
+    file_name = os.path.splitext(full_file_name)[0]
     st.session_state.file_name = file_name
 
     # 匯入檔案
@@ -43,7 +43,7 @@ if uploaded_file is not None:
     current_timestamp = str(current_timestamp).split(".")[0]
     input_dir = f"./input/{current_timestamp}"
     os.makedirs(input_dir, exist_ok=True)
-    source_path = os.path.join(input_dir, uploaded_file.name)
+    source_path = os.path.join(input_dir, full_file_name)
     f = open(source_path, "wb")
     f.write(uploaded_file.getbuffer())
     st.write('')
@@ -83,11 +83,13 @@ if uploaded_file is not None:
     # 處理檔案 3
     # 1. 將 srt 轉換成 txt
     input_file = output_file
-    output_file = f'{output_dir}/{file_name}.txt'
+    output_file = f"{output_dir}/{file_name}.txt"
     st.write(f'4 / 4 - 將 srt 轉換成 txt')
     # st.write(f'4 / 4 - 將 srt 轉換成 txt：{output_file}')
-    subs = pysrt.open(input_file)
-    transcription_txt = " ".join([sub.text for sub in subs])
+    transcription_txt = ""
+    for idx, t in enumerate(transcription.split("\n")):
+        if idx % 4 == 2:
+            transcription_txt += t + " "
     prompt = user_prompt2 + transcription_txt
     completion = client.chat.completions.create(
         model="gpt-4o",

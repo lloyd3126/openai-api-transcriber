@@ -10,7 +10,12 @@ from openai import OpenAI
 
 # 設置頁面標題
 st.title('逐字稿生成工具')
-st.markdown("""本工具使用 OpenAI 的 Audio API 來轉錄逐字稿，目前不支援一小時以上的影音檔。""")
+
+st.markdown('')
+st.markdown("本工具串接 OpenAI 的 Audio API 來轉錄逐字稿，不支援一小時以上的影音檔。")
+st.markdown("作者絕對不會收集使用者的 OpenAI API keys，但是工具本身是架在免費的公有伺服器上，因此建議使用後就刪除該次使用的 OpenAI API keys。")
+st.markdown("合作洽詢：contact@nien.cc")
+st.markdown('')
 
 api_key = st.text_input("OpenAI API keys", "")
 client = OpenAI(api_key=api_key)

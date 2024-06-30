@@ -59,8 +59,6 @@ if uploaded_file is not None:
     output_file = f'{output_dir}/{file_name}.mp3'
     st.write(f'2 / 4 - 轉換並壓縮檔案')
     # st.write(f'2 / 4 - 轉換並壓縮檔案：{output_file}')
-    print(input_file)
-    print(output_file)
     ffmpeg.input(input_file).output(output_file, q='9', ac='1').overwrite_output().run()
 
     # 處理檔案 2
@@ -102,5 +100,5 @@ if uploaded_file is not None:
         st.code(transcription_txt, language='wiki')
 
     shutil.rmtree("./input")
-    shutil.rmtree("./ouput")
+    shutil.rmtree("./output")
 

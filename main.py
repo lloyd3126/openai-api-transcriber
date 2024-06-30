@@ -12,7 +12,7 @@ ffmpeg._ffprobe = "/usr/bin/ffprobe"
 # 設置頁面標題
 st.title('逐字稿生成工具')
 
-api_key = st.text_input("api_key", "")
+api_key = st.text_input("OpenAI API keys", "")
 client = OpenAI(api_key=api_key)
 
 user_prompt1 = """使用繁體中文與英文輸出。"""

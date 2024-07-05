@@ -8,9 +8,8 @@ from openai import OpenAI
 
 st.set_page_config(
     page_title="逐字稿生成工具",
-    page_icon=":material/subtitles:"
+    page_icon=":material/speech_to_text:"
 )
-
 
 # ffmpeg._ffmpeg = "/usr/bin/ffmpeg"
 # ffmpeg._ffprobe = "/usr/bin/ffprobe"

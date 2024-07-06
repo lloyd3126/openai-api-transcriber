@@ -11,9 +11,6 @@ st.set_page_config(
     page_icon=":material/speech_to_text:"
 )
 
-# ffmpeg._ffmpeg = "/usr/bin/ffmpeg"
-# ffmpeg._ffprobe = "/usr/bin/ffprobe"
-
 # 設置頁面標題
 st.title('逐字稿生成工具')
 

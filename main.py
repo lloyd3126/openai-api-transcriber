@@ -26,11 +26,6 @@ client = OpenAI(api_key=api_key)
 user_prompt1 = """使用繁體中文與英文輸出。"""
 user_prompt1 = st.text_area("轉逐字稿的提示詞", user_prompt1) + "\n\n"
 
-user_prompt2 = """請將以下逐字稿加入適當的標點符號，
-並提供摘要。
-"""
-user_prompt2 = st.text_area("處理逐字稿的提示詞", user_prompt2) + "\n\n"
-
 # 創建文件上傳器
 uploaded_file = st.file_uploader(
     "文件上傳器", 
@@ -71,7 +66,7 @@ if uploaded_file is not None:
     f = open(source_path, "wb")
     f.write(uploaded_file.getbuffer())
     st.write('')
-    st.write(f'1 / 4 - 檔案複製到此資料夾下')
+    st.write(f'1 / 3 - 檔案複製到此資料夾下')
     # st.write(f'1 / 4 - 檔案複製到此資料夾下：./input/{current_timestamp}')
 
     # 處理檔案 1
@@ -81,7 +76,7 @@ if uploaded_file is not None:
     os.makedirs(output_dir, exist_ok=True)
     input_file = f'{input_dir}/{full_file_name}'
     output_file = f'{output_dir}/{file_name}.mp3'
-    st.write(f'2 / 4 - 轉換並壓縮檔案')
+    st.write(f'2 / 3 - 轉換並壓縮檔案')
     # st.write(f'2 / 4 - 轉換並壓縮檔案：{output_file}')
     ffmpeg.input(input_file).output(output_file, q='9', ac='1').overwrite_output().run()
 
@@ -91,7 +86,7 @@ if uploaded_file is not None:
         # 1. 轉換成 srt 格式的逐字稿
         input_file = open(output_file, "rb")
         output_file = f'{output_dir}/{file_name}.srt'
-        st.write(f'3 / 4 - 轉換成 srt 格式的逐字稿')
+        st.write(f'3 / 3 - 轉換成 srt 格式的逐字稿')
         # st.write(f'3 / 4 - 轉換成 srt 格式的逐字稿：{output_file}')
         prompt = user_prompt1
         transcription = client.audio.transcriptions.create(
@@ -106,26 +101,6 @@ if uploaded_file is not None:
         with st.expander("逐字稿"):
             st.code(transcription, language='wiki')
 
-        # 處理檔案 3
-        # 1. 將 srt 轉換成 txt
-        input_file = output_file
-        output_file = f"{output_dir}/{file_name}.txt"
-        st.write(f'4 / 4 - 將 srt 轉換成 txt')
-        # st.write(f'4 / 4 - 將 srt 轉換成 txt：{output_file}')
-        transcription_txt = ""
-        for idx, t in enumerate(transcription.split("\n")):
-            if idx % 4 == 2:
-                transcription_txt += t + " "
-        prompt = user_prompt2 + transcription_txt
-        completion = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": prompt}]
-        )
-        transcription_txt = completion.choices[0].message.content
-        file = open(output_file, 'w')
-        file.write(transcription_txt)
-        with st.expander("整理後的逐字稿"):
-            st.code(transcription_txt, language='wiki')
     else:
         st.write(f'超過檔案大小')
 
